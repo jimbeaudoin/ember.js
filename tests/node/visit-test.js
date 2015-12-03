@@ -128,6 +128,24 @@ QUnit.test('FastBoot: redirect', function(assert) {
   ]);
 });
 
+QUnit.test('FastBoot: attributes are sanitized', function(assert) {
+  this.template('application', '<a href={{test}}></a>');
+
+  this.controller('application', {
+    /*jshint scripturl:true*/
+    test: 'javascript:alert("hello")'
+  });
+
+  var App = this.createApplication();
+
+  return RSVP.all([
+    fastbootVisit(App, '/').then(
+      assertFastbootResult(assert, { url: '/', body: '<a href="unsafe:javascript:alert\\(&quot;hello&quot;\\)"></a>' }),
+      handleError(assert)
+    )
+  ]);
+});
+
 QUnit.test('FastBoot: route error', function(assert) {
   this.routes(function() {
     this.route('a');
